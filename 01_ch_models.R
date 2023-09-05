@@ -6,7 +6,9 @@ library(flexmix)
 library(tidyverse)
 
 load("master_dataframes.RData")
+
 ## Order the columns of master_nzffd_final 
+master_nzffd_final$absent = 1 - master_nzffd_final$present
 colorder = c("present", "absent", "species_code", "card", "FRE3",
               "FRE3MeanDurBetween", "MALF", "MAHF", "MeanFlow", "C_constancy",
               "C_contingency", "C_predictability", "MeanLowFlowDur", 
@@ -63,4 +65,4 @@ model_test = stepFlexmix(cbind(present, absent) ~ nzsegment | catchment_name,
               #> I use the driver FLXMRglmfix as specified in Hamel et al, 2017
               #> for a finite mixture regresion.
               model = FLXMRglmfix(family = "binomial", fixed = ~ species_code), 
-              nrep = 3, k = 1:3, data = sampled_df)
+              nrep = 3, k = 1:3, data = scale_test)
