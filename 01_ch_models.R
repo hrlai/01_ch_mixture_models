@@ -53,16 +53,37 @@ test_df_log$AnnCV = log(test_df_log$AnnCV)
 scale_test = test_df_log
 scale_test[,4:16] <- scale(scale_test[,4:16])
 
-# Sample 30% of data to run a test model
+# Sample 10% of data to run a test model
 sampled_df = scale_test %>%
-  sample_frac(0.3, replace = FALSE)
+  sample_frac(0.1, replace = FALSE)
 
 #> Test model with one random effect and one predictor giving 3 reps to achieve
 #> maximum likelihood and specifying 1:5 clusters as potential clusters. Species
 #> is here specified as fixed effect, but potentially species id would be the 
 #> latent variable determining the clusters.
-model_test = stepFlexmix(cbind(present, absent) ~ nzsegment | catchment_name,
+model_test = stepFlexmix(cbind(present, absent) ~ FRE3 + AnnCV | species_code,
               #> I use the driver FLXMRglmfix as specified in Hamel et al, 2017
-              #> for a finite mixture regresion.
-              model = FLXMRglmfix(family = "binomial", fixed = ~ species_code), 
-              nrep = 3, k = 1:3, data = scale_test)
+              #> for a finite mixture binomial regresion.
+              model = FLXMRglm(family = "binomial"), 
+              nrep = 3, k = 1:5, data = sampled_df[1:500,])
+
+model_test
+# Run stepFlexmix
+model_test = stepFlexmix(cbind(present, absent) ~ FRE3 + AnnCV +
+                           MAHF_Mean + MALF_Mean + C_constancy + 
+                           C_contingency| species_code,
+                         #> I use the driver FLXMRglmfix as specified in Hamel et al, 2017
+                         #> for a finite mixture binomial regresion.
+                         model = FLXMRglm(family = "binomial"), 
+                         nrep = 5 , k = 1:5, data = sampled_df)
+summary(model_test)
+
+# Check for optimal number of clusters
+model_test = flexmix(cbind(present, absent) ~ FRE3 | as.factor(species_code),
+                         #> 
+                         model = FLXMRlmer(cbind(present, absent) ~ FRE3 |
+                                             as.factor(species_code), 
+                                           random = ~ 1), k = 1,
+                     data = sampled_df)
+
+clusters(model_test)
