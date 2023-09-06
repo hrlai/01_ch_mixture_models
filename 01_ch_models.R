@@ -53,14 +53,17 @@ test_df_log$AnnCV = log(test_df_log$AnnCV)
 scale_test = test_df_log
 scale_test[,4:16] <- scale(scale_test[,4:16])
 
-# Sample 30% of data to run a test model
-# sampled_df = scale_test %>%
-#   sample_frac(0.3, replace = FALSE)
+
+# Sample 10% of data to run a test model
+sampled_df = scale_test %>%
+  sample_frac(0.1, replace = FALSE)
+
 
 #> Test model with one random effect and one predictor giving 3 reps to achieve
 #> maximum likelihood and specifying 1:5 clusters as potential clusters. Species
 #> is here specified as fixed effect, but potentially species id would be the 
 #> latent variable determining the clusters.
+
 model_test = stepFlexmix(
   cbind(present, absent) ~ 1 | nzsegment,
   #> I use the driver FLXMRglmfix as specified in Hamel et al, 2017
